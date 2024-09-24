@@ -35,8 +35,7 @@ def get_data_selenium():
 
 
 def main():
-    # get_data_selenium()
-    print(os.getenv('RIT_USERNAME'))
+    get_data_selenium()
     
 
 
