@@ -43,9 +43,6 @@ class Parser:
         )
         print("2FA completed and redirected back. Continuing automation...")
 
-    # def parse_info(self):
-    #     pass
-
     def get_info(self):
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, """//*[@id="content-view"]/div[3]/div/div/career-fair-content/div[1]/div[2]/div/div/div/div[1]/h1"""))
@@ -65,11 +62,12 @@ class Parser:
             company.click()
             time.sleep(1)
 
-            parse_info()
+            self.parse_info()
 
             self.driver.back()
 
-    
+    def parse_info(self):
+        pass
 
     def run_parser(self):
         self.get_to_page()
@@ -81,42 +79,11 @@ class Parser:
         self.driver.quit()
 
 
-def get_data():
-    response = requests.get(listings).text
-    soup = BeautifulSoup(response, 'html.parser')
+# def get_data():
+#     response = requests.get(listings).text
+#     soup = BeautifulSoup(response, 'html.parser')
 
-    print(soup)
-
-def get_data_selenium():
-    service = Service(executable_path="C:/Program Files/chromedriver-win64/chromedriver.exe")
-    driver = webdriver.Chrome(service=service)
-    driver.get(listings)
-
-    WebDriverWait(driver, 5).until(
-        EC.presence_of_element_located((By.ID, "ritUsername"))
-    )
-
-    # input_element = driver.find_element(By.ID, "ritUsername")
-    # input_element.clear()
-    # input_element.send_keys(os.getenv("RIT_USERNAME"))
-
-    # input_element = driver.find_element(By.ID, "ritPassword")
-    # input_element.clear()
-    # input_element.send_keys(os.getenv("RIT_PASSWORD"))
-
-    # login_button = driver.find_element(By.XPATH, "/html/body/div/div[1]/form/div/span/button")
-    # login_button.click()
-
-    WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "University-Wide Career Fair Fall 2024- September 25, 2024"))
-    )
-
-    for i in range(7):
-        print(i + 1)
-        time.sleep(1)
-    driver.quit()
-    # thread.join()
-
+#     print(soup)
 
 def main():
     Parser().run_parser()
