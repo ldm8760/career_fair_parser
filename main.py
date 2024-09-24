@@ -1,8 +1,11 @@
+import os
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 
 
@@ -18,12 +21,22 @@ def get_data_selenium():
     service = Service(executable_path="../../../../Program Files/chromedriver-win64/chromedriver.exe")
     driver = webdriver.Chrome(service=service)
     driver.get("https://rit-csm.symplicity.com/students/app/home")
-    time.sleep(10)
+
+    WebDriverWait(driver, 5).until(
+        EC.presence_of_element_located((By.ID, "ritUsername"))
+    )
+
+    input_element = driver.find_element(By.ID, "ritUsername")
+    input_element.clear()
+    input_element.send_keys(os.getenv("RIT_USERNAME"))
+
+    time.sleep(30)
     driver.quit()
 
 
 def main():
-    get_data_selenium()
+    # get_data_selenium()
+    print(os.getenv('RIT_USERNAME'))
     
 
 
