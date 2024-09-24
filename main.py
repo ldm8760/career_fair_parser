@@ -6,10 +6,17 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import keyboard
+import threading
 import time
 
 
 listings = "https://rit-csm.symplicity.com/students/app/career-fairs/c44d4e872414c27ed31d34e6d3767018/employers"
+
+def check_quit(driver):
+    while True:
+        if keyboard.is_pressed("q"):
+            driver.quit()
 
 def get_data():
     response = requests.get(listings).text
@@ -30,8 +37,10 @@ def get_data_selenium():
     input_element.clear()
     input_element.send_keys(os.getenv("RIT_USERNAME"))
 
+    thread = threading.Thread(target=check_quit(driver))
+    thread.start()
+
     time.sleep(30)
-    driver.quit()
 
 
 def main():
