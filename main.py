@@ -1,6 +1,4 @@
 import os
-import requests
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -9,6 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.action_chains import ActionChains
+import pandas as pd
 import time
 
 
@@ -18,6 +17,7 @@ class Parser:
         self.driver = webdriver.Chrome(service=self.service)
         self.listings = "https://rit-csm.symplicity.com/students/app/career-fairs/c44d4e872414c27ed31d34e6d3767018/employers"
         self.driver.get(self.listings)
+        self.data = []
 
     def get_to_page(self):
         WebDriverWait(self.driver, 5).until(
@@ -38,7 +38,6 @@ class Parser:
         print("Please complete 2FA manually.")
         time.sleep(10)
 
-        # Wait for the browser to return to the original site after 2FA
         WebDriverWait(self.driver, 120).until(
             lambda driver: driver.current_url == self.listings
         )
@@ -84,7 +83,7 @@ class Parser:
                         EC.presence_of_element_located((By.CLASS_NAME, "field-widget-tinymce"))
                     )
 
-                    self.post_to_xlsx(icn_link.text, description.text)
+                    self.post_to_xlsx(i, icn_link.text, description.text)
 
                     self.driver.back()
                     successes += 1
@@ -98,18 +97,38 @@ class Parser:
                     fails += 1
                     continue
 
-    def post_to_xlsx(self, icn_link, description):
+    def post_to_xlsx(self, index, icn_link, description):
+        print(f"index: {index}")
         print(f"icn_link: {icn_link}")
         print(f"Description: {description}")
+        
+        self.data.append((index, icn_link, description))
+
+        if index % 5 == 0:
+            self.save_to_excel()
+        
+        if index > 1 and index % 50 == 0:
+            self.save_to_excel(f"output{index}.xlsx")
+
+    def save_to_excel(self, file_name='output.xlsx'):
+        df = pd.DataFrame(self.data, columns=['Index', 'ICN Link', 'Description'])
+        df.to_excel(file_name, index=False)
+        print(f"Data saved to {file_name}")
 
     def run_parser(self):
         self.get_to_page()
         self.get_info()
 
+        if self.data:
+            self.save_to_excel()
+
         self.driver.quit()
 
 def main():
-    Parser().run_parser()
+    parser = Parser()
+    parser.run_parser()
+    parser.save_to_excel()
+
     
 if __name__ == "__main__":
     main()
