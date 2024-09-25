@@ -15,7 +15,6 @@ class Parser:
         self.service = Service(executable_path="C:/Program Files/chromedriver-win64/chromedriver.exe")
         self.driver = webdriver.Chrome(service=self.service)
         self.listings = "https://rit-csm.symplicity.com/students/app/career-fairs/c44d4e872414c27ed31d34e6d3767018/employers"
-        self.auth = "https://api-3d4a13e1.duosecurity.com/frame/v4/auth/prompt?sid=frameless-21be7b6b-588d-4e25-a190-d6885aa67e6f"
         self.driver.get(self.listings)
 
     def get_to_page(self):
@@ -44,27 +43,27 @@ class Parser:
         print("2FA completed and redirected back. Continuing automation...")
 
     def get_info(self):
-        WebDriverWait(self.driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, """//*[@id="content-view"]/div[3]/div/div/career-fair-content/div[1]/div[2]/div/div/div/div[1]/h1"""))
+        dropdown_element = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@aria-label="Select the number of items to show per page"]'))
         )
+        dropdown = Select(dropdown_element)
 
-        dropdown = Select(self.driver.find_element(By.CLASS_NAME, "ng-star-inserted"))
         dropdown.select_by_value('250')
 
-        time.sleep(15)
+        # time.sleep(15)
 
-        company_elements = self.driver.find_elements(By.CLASS_NAME, "list-item list_rows list-item-responsive-actions cursor-pointer")
+        # company_elements = self.driver.find_elements(By.CLASS_NAME, "list-item list_rows list-item-responsive-actions cursor-pointer")
 
-        for company in company_elements:
-            tabindex = company.get_attribute("tabindex")
-            print(f"Tabindex: {tabindex}")
+        # for company in company_elements:
+        #     tabindex = company.get_attribute("tabindex")
+        #     print(f"Tabindex: {tabindex}")
             
-            company.click()
-            time.sleep(1)
+        #     company.click()
+        #     time.sleep(1)
 
-            self.parse_info()
+        #     self.parse_info()
 
-            self.driver.back()
+        #     self.driver.back()
 
     def parse_info(self):
         pass
@@ -73,7 +72,7 @@ class Parser:
         self.get_to_page()
         self.get_info()
 
-        for i in range(7):
+        for i in range(40):
             print(i + 1)
             time.sleep(1)
         self.driver.quit()
