@@ -7,6 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.common.action_chains import ActionChains
 import time
 
 
@@ -50,39 +52,61 @@ class Parser:
 
         dropdown.select_by_value('250')
 
-        # time.sleep(15)
+        time.sleep(5)
 
-        # company_elements = self.driver.find_elements(By.CLASS_NAME, "list-item list_rows list-item-responsive-actions cursor-pointer")
+        total_elements = int(str(self.driver.find_element(By.CLASS_NAME, "lst-cnt").text).split(" ")[0])
+        print(f"total_elements: {total_elements}")
+        successes = 0
+        fails = 0
 
-        # for company in company_elements:
-        #     tabindex = company.get_attribute("tabindex")
-        #     print(f"Tabindex: {tabindex}")
-            
-        #     company.click()
-        #     time.sleep(1)
+        for i in range(total_elements):
+            retries = 2
+            for attempt in range(retries):
+                try:
+                    company = WebDriverWait(self.driver, 10).until(
+                        EC.element_to_be_clickable((By.ID, f"list-item-{i}"))
+                    )
 
-        #     self.parse_info()
+                    self.driver.execute_script("arguments[0].scrollIntoView(true);", company)
 
-        #     self.driver.back()
+                    company = WebDriverWait(self.driver, 10).until(
+                        EC.element_to_be_clickable((By.ID, f"list-item-{i}"))
+                    )
+                    
+                    actions = ActionChains(self.driver)
+                    actions.move_to_element(company).click().perform()
 
-    def parse_info(self):
-        pass
+                    icn_link = WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'icn-link')]/parent::a"))
+                    )
+                    
+                    description = WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, "field-widget-tinymce"))
+                    )
+
+                    self.post_to_xlsx(icn_link.text, description.text)
+
+                    self.driver.back()
+                    successes += 1
+                    break
+
+                except StaleElementReferenceException:
+                    fails += 1
+                    continue
+
+                except Exception as e:
+                    fails += 1
+                    continue
+
+    def post_to_xlsx(self, icn_link, description):
+        print(f"icn_link: {icn_link}")
+        print(f"Description: {description}")
 
     def run_parser(self):
         self.get_to_page()
         self.get_info()
 
-        for i in range(40):
-            print(i + 1)
-            time.sleep(1)
         self.driver.quit()
-
-
-# def get_data():
-#     response = requests.get(listings).text
-#     soup = BeautifulSoup(response, 'html.parser')
-
-#     print(soup)
 
 def main():
     Parser().run_parser()
